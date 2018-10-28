@@ -9,9 +9,6 @@ import sys
 import IPython
 import fluidsynth
 import torch
-### need also to install fluidsynth to be able to synthesize midi file to audio (pip install fluidsynth)
-
-
 
 
 def piano_roll_to_pretty_midi(piano_roll, fs=100, program=2):
@@ -228,7 +225,4 @@ def gen_music_seconds_smooth(model,init,composer=0,fs=5,gen_seconds=10,init_seco
     res = ( song.squeeze(1).detach().cpu().numpy()).astype(float).T
     visualize_piano_roll(res,fs)
     return embed_play_v1(res,fs)
-    
-    
-
     

@@ -4,9 +4,6 @@ import torch
 import numpy as np
 
 class pianoroll_dataset_batch(Dataset):
-    """
-    
-    """
     def __init__(self, root_dir, transform=None, name_as_tag=True,binarize=True):
         """
         Args:
@@ -24,6 +21,7 @@ class pianoroll_dataset_batch(Dataset):
 
     def gen_batch(self,batchsize=100,chunks_per_song=20):
         return None
+
     def __len__(self):
         return len(self.tags)
 
