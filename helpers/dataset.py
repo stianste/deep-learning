@@ -1,3 +1,4 @@
+# flake8: noqa
 from torch.utils.data import Dataset
 import datapreparation as datp
 import torch
