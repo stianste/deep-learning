@@ -18,10 +18,26 @@ def get_training_data_loader(directory=csv_dir):
 
 def train_model(model: nn, dataset: Dataset) -> nn:
     hidden = model.init_hidden()
+    criterion = const.LOSS_FUNCTION
 
     for epoch in range(const.NUM_EPOCHS):
         for i, song in enumerate(dataset):
             input_tensors, tags, output_tensors = song
+
+            model.zero_grad()
+
+            for t in range(input_tensors.size(0)):
+                x_t = input_tensors[t]
+                y_t = output_tensors[t]
+
+                output, hidden = model(x_t, hidden)
+            loss = criterion(output, y_t.float())
+
+            print("Loss:", loss)
+            loss.backward(retain_graph=True)
+
+            for p in model.parameters():
+                p.data.add_(-const.LEARNING_RATE, p.grad.data)
 
 
 def compose(model: nn) -> None:

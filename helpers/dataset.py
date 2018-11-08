@@ -18,7 +18,7 @@ class pianoroll_dataset_batch(Dataset):
         if(name_as_tag):
             self.tags =  datp.load_all_dataset_names(self.root_dir)
             self.tags_ids=dict(zip(np.unique(self.tags),range(np.unique(self.tags).size)))
-        self.data = datp.load_all_dataset(self.root_dir,binarize)
+        self.data = datp.load_all_dataset(self.root_dir, binarize)
 
     def gen_batch(self,batchsize=100,chunks_per_song=20):
         return None
