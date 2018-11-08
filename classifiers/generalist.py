@@ -27,10 +27,10 @@ def train_model() -> nn:
 
     for epoch in range(const.NUM_EPOCHS):
         for i, sample_batch in enumerate(data_loader):
-            pass
+            print(sample_batch)
 
 
-def compose() -> None:
+def compose(model: nn) -> None:
     pass
 
 
