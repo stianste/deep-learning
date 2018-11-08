@@ -1,8 +1,7 @@
 import constants as const
-# import datapreparation as dp
 import torch.nn as nn
 
-from dataset import pianoroll_dataset_batch
+from helpers.dataset import pianoroll_dataset_batch
 from torch.utils.data import DataLoader
 
 fs1_rolls = 'datasets/training/piano_roll_fs1/'
@@ -15,7 +14,7 @@ def get_training_data_loader(directory=csv_dir):
     dataset_batch = pianoroll_dataset_batch(fs1_rolls) 
     train_loader = DataLoader(
         dataset=dataset_batch,
-        batch_size=const.batch_size,
+        batch_size=const.BATCH_SIZE,
         shuffle=False
     )
 
