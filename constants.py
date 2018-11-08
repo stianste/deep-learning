@@ -1,2 +1,4 @@
-BATCH_SIZE = 50
-NUM_EPOCHS = 50
+"""General"""
+# Currently only works with batchsize 1, since the songs are of unequal length
+BATCH_SIZE = 1
+NUM_EPOCHS = 1
