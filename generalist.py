@@ -12,8 +12,24 @@ fs5_rolls = 'datasets/training/piano_roll_fs5/'
 csv_dir = fs1_rolls
 
 
-def get_training_data_loader(directory=csv_dir):
+def get_training_data_loader(directory: str = csv_dir):
     return pianoroll_dataset_batch(fs1_rolls)
+
+
+def set_max_value_to_1(tensor: torch.Tensor) -> torch.Tensor:
+    max_index = torch.argmax(tensor, 2).item()
+    # TODO: This is very ad-hoc. Do properly later
+    tensor = torch.zeros(1, 1, 128)
+    tensor[0][0][max_index] = 1
+    return tensor
+
+
+def output_to_piano_keys(output: torch.Tensor, threshold: float = 0.6) -> torch.Tensor:
+    above_threshold = output > threshold
+    if above_threshold.sum() > 1:
+        return above_threshold.float().requires_grad_()
+    else:
+        return set_max_value_to_1(output).float().requires_grad_()
 
 
 def train_model(model: nn, dataset: Dataset, num_epocs: int = 10) -> nn:
@@ -32,14 +48,15 @@ def train_model(model: nn, dataset: Dataset, num_epocs: int = 10) -> nn:
                 y_t = output_tensors[t]
 
                 output, hidden = model(x_seq.view(1, 1, -1), hidden)
-                print(output)
+                output = output_to_piano_keys(output)
+                # print(output)
 
                 loss = criterion(output, y_t.unsqueeze(0))
                 # print("Loss:", loss)
                 optimizer.zero_grad()
                 loss.backward(retain_graph=True)
-
                 optimizer.step()
+
             print("Params", i)
             for name, param in model.named_parameters():
                 if param.requires_grad:
