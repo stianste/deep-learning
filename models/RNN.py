@@ -8,16 +8,17 @@ class RNN(nn.Module):
 
         self.hidden_size = hidden_size
 
+        # Note: only works with time_step = 1 atm
         self.i2h = nn.Linear(input_size + hidden_size, hidden_size)
         self.i2o = nn.Linear(input_size + hidden_size, output_size)
-        self.softmax = nn.LogSoftmax(dim=1)
+        self.sigmoid = nn.Sigmoid()
 
-    def forward(self, input, hidden):
-        combined = torch.cat((input, hidden), 1)
+    def forward(self, inp, hidden):
+        combined = torch.cat((inp, hidden), 2)
         hidden = self.i2h(combined)
         output = self.i2o(combined)
-        output = self.softmax(output)
+        output = self.sigmoid(output)
         return output, hidden
 
     def init_hidden(self):
-        return torch.zeros(1, self.hidden_size)
+        return torch.zeros(1, 1, self.hidden_size)
