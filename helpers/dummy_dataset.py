@@ -10,7 +10,7 @@ class DummyDataset(Dataset):
         self.input_size = self.length // 2
 
     def __len__(self):
-        return self.length
+        return self.length * self.repetitions
 
     def __getitem__(self, idx):
         input_tensor, tags, output_tensor = self.generate_pattern()
@@ -19,7 +19,9 @@ class DummyDataset(Dataset):
                 self.generate_pattern()
             input_tensor = torch.cat((input_tensor[:-1], new_input_tensor), 0)
             tags = torch.cat((tags[:-1], new_tags), 0)
-            output_tensor = torch.cat((output_tensor[:-1], new_output_tensor), 0)
+            output_tensor = torch.cat(
+                (output_tensor[:-1], new_output_tensor), 0
+                )
 
         return input_tensor, tags, output_tensor
 
@@ -39,4 +41,3 @@ class DummyDataset(Dataset):
                 self.input_size - i - 2] = 1
 
         return input_tensor, tags, output_tensor
-

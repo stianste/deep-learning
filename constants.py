@@ -6,10 +6,10 @@ import torch.nn as nn
 BATCH_SIZE = 1
 NUM_EPOCHS = 10
 
-HIDDEN_SIZE = 32
-LEARNING_RATE = 0.0001
+HIDDEN_SIZE = 128
+LEARNING_RATE = 0.001
 
 LOSS_FUNCTION = nn.MSELoss()
 OPTIMIZER = torch.optim.Adam
 
-STEP = 1
+STEP = 40
