@@ -159,16 +159,16 @@ def embed_play_v1(piano_roll_matrix,fs=5):
 
 def generate_round(model,tag,n,k=1,init=None):
     if(init is None):
-        init = torch.zeros(size=(k,1,model.input_size)).cuda()
+        init = torch.zeros(size=(k,1,model.input_size))
     else:
         k = init.shape[0]
     res = init
-    hidden = None
-    for i in xrange(n//k):
-        init,hidden = model.forward(init,tag,hidden)
+    hidden = torch.zeros(1, 128)
+    for i in range(n//k):
+        init,hidden = model.forward(init.view(1, 128),tag,hidden)
         #init = torch.round(torch.exp(init))
         init = torch.round(init/torch.max(init))
-        res = torch.cat ( ( res, init ) )
+        res = torch.cat ( ( res, init.view(1, 1, -1) )
     return res
 
 def generate_smooth(model,tag,n,init):
@@ -203,9 +203,9 @@ def gen_music_initkeys(model,length=1000,initkeys=40,composer=0,fs=5):
     
 def gen_music_pianoroll(model,length=1000,init=None,composer=0,fs=5):
     if(init is None):
-        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1).cuda(),length,1)
+        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1),length,1)
     else:
-        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1).cuda(),length,1,init)
+        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1),length,1,init)
     res = ( song.squeeze(1).detach().cpu().numpy()).astype(int).T
     return res
 
