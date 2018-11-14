@@ -8,7 +8,8 @@ from torch.utils.data import Dataset
 from helpers.dataset import pianoroll_dataset_batch
 from helpers.datapreparation import gen_music_pianoroll, piano_roll_to_mid_file
 from helpers.dummy_dataset import DummyDataset
-from models.RNN import RNN
+# from models.RNN import RNN
+from models.LSTM import LSTM
 
 fs1_rolls = 'datasets/training/piano_roll_fs1/'
 fs2_rolls = 'datasets/training/piano_roll_fs2/'
@@ -40,43 +41,35 @@ def output_to_piano_keys(
 
 
 def train_model(model: nn, dataset: Dataset, num_epochs: int = 10) -> nn:
-    criterion = const.LOSS_FUNCTION
+    loss_function = const.LOSS_FUNCTION()
     optimizer = const.OPTIMIZER(model.parameters(), lr=const.LEARNING_RATE)
 
     for epoch in range(num_epochs):
         for i, song in enumerate(dataset):
-            hidden = model.init_hidden()
-
             input_tensors, tags, output_tensors = song
-            song_length = song[0].size(0)
 
+            model.reset_hidden()
+
+            song_length = len(input_tensors)
             song_losses = []
-            for step_start in range(0, song_length - 1, const.STEP):
-                h = min(step_start + const.STEP, len(song))
-                for t in range(step_start, h):
-                    x_seq = input_tensors[t]
-                    y_t = output_tensors[t]
+            for t in range(song_length):
+                model.zero_grad()
 
-                    output, hidden = model(x_seq, None, hidden)
+                roof = min(t + const.SEQ_LEN, song_length - 1)
+                x_seq = input_tensors[t:roof]
+                y_t = output_tensors[t:roof]
 
-                loss = criterion(output, y_t)
-                # print("Input:", x_seq)
-                # print("Target:", y_t)
-                # print("Output:", output)
-                # print("Loss:", loss)
-                optimizer.zero_grad()
+                output = model(x_seq)
+
+                loss = loss_function(output, y_t.squeeze())
+                song_losses.append(loss.item())
                 loss.backward(retain_graph=True)
                 optimizer.step()
-                song_losses.append(loss.item())
 
-            for name, param in model.named_parameters():
-                if param.requires_grad:
-                    if np.isnan(param.data[0][0][0]):
-                        print("Parameter = nan. Returning model")
-                        return model
+            print("Song", i, "/", len(dataset))
+            print("Avg loss", sum(song_losses)/len(song_losses))
+
         print("Epoch", epoch)
-        print("Avg loss", sum(song_losses)/len(song_losses))
-
     return model
 
 
@@ -94,12 +87,13 @@ def compose(model: nn.Module) -> None:
 
 
 if __name__ == "__main__":
-    dataset = DummyDataset()
+    # dataset = DummyDataset()
     dataset = get_training_data_loader()
     # Index first song tuple, then input, then the final input dim
     input_size = output_size = dataset[0][0][0][0].size(0)
 
-    model = RNN(input_size, const.HIDDEN_SIZE, output_size)
+    # model = RNN(input_size, const.HIDDEN_SIZE, output_size)
+    model = LSTM(input_size, const.HIDDEN_SIZE, output_size)
     model = train_model(model, dataset, num_epochs=const.NUM_EPOCHS)
 
     compose(model)

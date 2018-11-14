@@ -168,7 +168,7 @@ def generate_round(model,tag,n,k=1,init=None):
         init,hidden = model.forward(init.view(1, 128),tag,hidden)
         #init = torch.round(torch.exp(init))
         init = torch.round(init/torch.max(init))
-        res = torch.cat ( ( res, init.view(1, 1, -1) )
+        res = torch.cat ( ( res, init.view(1, 1, -1) ) )
     return res
 
 def generate_smooth(model,tag,n,init):
