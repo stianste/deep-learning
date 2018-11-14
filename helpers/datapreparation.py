@@ -163,9 +163,9 @@ def generate_round(model,tag,n,k=1,init=None):
     else:
         k = init.shape[0]
     res = init
-    hidden = torch.zeros(1, 128)
+    model.reset_hidden()
     for i in range(n//k):
-        init,hidden = model.forward(init.view(1, 128),tag,hidden)
+        init = model.forward(init.view(1, 1, 128), tag)
         #init = torch.round(torch.exp(init))
         init = torch.round(init/torch.max(init))
         res = torch.cat ( ( res, init.view(1, 1, -1) ) )

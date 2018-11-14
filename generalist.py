@@ -41,7 +41,7 @@ def output_to_piano_keys(
 
 
 def train_model(model: nn, dataset: Dataset, num_epochs: int = 10) -> nn:
-    loss_function = const.LOSS_FUNCTION()
+    loss_function = const.LOSS_FUNCTION
     optimizer = const.OPTIMIZER(model.parameters(), lr=const.LEARNING_RATE)
 
     for epoch in range(num_epochs):
@@ -52,24 +52,23 @@ def train_model(model: nn, dataset: Dataset, num_epochs: int = 10) -> nn:
 
             song_length = len(input_tensors)
             song_losses = []
-            for t in range(song_length):
+            for t in range(0, song_length - 1, const.SEQ_LEN):
                 model.zero_grad()
 
                 roof = min(t + const.SEQ_LEN, song_length - 1)
                 x_seq = input_tensors[t:roof]
                 y_t = output_tensors[t:roof]
 
-                output = model(x_seq)
+                output = model(x_seq, None)
 
-                loss = loss_function(output, y_t.squeeze())
+                loss = loss_function(output, y_t.view(roof-t, -1))
                 song_losses.append(loss.item())
                 loss.backward(retain_graph=True)
                 optimizer.step()
 
-            print("Song", i, "/", len(dataset))
-            print("Avg loss", sum(song_losses)/len(song_losses))
+            print("Epoch", epoch+1, "Song", i+1, "/", len(dataset))
+            print("Avg loss for this song", sum(song_losses)/len(song_losses))
 
-        print("Epoch", epoch)
     return model
 
 

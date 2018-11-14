@@ -19,7 +19,7 @@ class LSTM(nn.Module):
         return (torch.zeros(1, 1, self.hidden_size),
                 torch.zeros(1, 1, self.hidden_size))
 
-    def forward(self, inp):
+    def forward(self, inp, tags):
         lstm_out, self.hidden = self.lstm(inp, self.hidden)
         output = self.hidden2out(lstm_out.view(len(inp), -1))
         output = torch.sigmoid(output)
