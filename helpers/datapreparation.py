@@ -154,9 +154,9 @@ def generate_round(model,tag,n,k=1,init=None):
         k = init.shape[0]
     res = init.view(-1, const.INPUT_SIZE)
     # Add all ones marker so we know when the model has taken over
-    model.reset_hidden()
+    hidden = model.init_hidden()
     for i in range(n//k):
-        init = model.forward(init.view(-1, 1, const.INPUT_SIZE), tag)
+        init, hidden = model.forward(init.view(-1, 1, const.INPUT_SIZE), hidden)
         # init = torch.round(torch.exp(init))
         init = torch.round(init/torch.max(init))
         res = torch.cat ( ( res, init ) )

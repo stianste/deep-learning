@@ -20,11 +20,23 @@ class LSTM(nn.Module):
         return (torch.zeros(self.num_layers, 1, self.hidden_size),
                 torch.zeros(self.num_layers, 1, self.hidden_size))
 
-    def forward(self, inp, tags):
-        lstm_out, self.hidden = self.lstm(inp, self.hidden)
+    def forward(self, inp, hidden, tag=None):
+        lstm_out, hidden = self.lstm(inp, hidden)
         output = self.hidden2out(lstm_out.view(len(inp), -1))
         output = torch.sigmoid(output)
-        return output
+        return output, hidden
 
-    def reset_hidden(self):
-        self.hidden = self.init_hidden()
+
+class LSTMSpecialist(LSTM):
+    def __init__(self, input_size, hidden_size,
+                 output_size, num_layers=1, num_composers=4):
+        super(LSTMSpecialist, self).__init__()
+        self.num_composers = num_composers
+        self.composer_embeddings = nn.Embedding(num_composers, hidden_size)
+        self.notes_encoder = nn.Linear(in_features=input_size,
+                                       out_features=hidden_size)
+
+    def forward(self, inp, tag, hidden=None):
+        if not hidden:
+            self.hidden = self.composer_embeddings()
+        super.forward(inp, tag)

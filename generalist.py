@@ -43,7 +43,7 @@ def train_model(model: nn, dataset: Dataset, num_epochs: int = 10) -> nn:
     for epoch in range(num_epochs):
         for i, song in enumerate(dataset):
             input_tensors, tags, output_tensors = song
-            model.reset_hidden()
+            hidden = model.init_hidden()
 
             song_length = len(input_tensors)
             song_losses = []
@@ -54,7 +54,7 @@ def train_model(model: nn, dataset: Dataset, num_epochs: int = 10) -> nn:
                 x_seq = input_tensors[t:roof]
                 y_t = output_tensors[t:roof]
 
-                output = model(x_seq, None)
+                output, hidden = model(x_seq, hidden)
 
                 loss = loss_function(output, y_t.view(roof-t, -1))
                 song_losses.append(loss.item())
@@ -91,7 +91,7 @@ def generate_from_song(
 def compose(model: nn.Module, dataset: Dataset) -> None:
     for song_nr in range(len(dataset)):
         timestamp = datetime.datetime.utcnow()
-        filename = (f"v5_c{song_nr}_l{const.NUM_HIDDEN_LAYERS}"
+        filename = (f"zz_v5_c{song_nr}_l{const.NUM_HIDDEN_LAYERS}"
                     f"_e{const.NUM_EPOCHS}"
                     f"_s{const.SEQ_LEN}_{timestamp}.mid")
         filename = "compositions/" + filename
