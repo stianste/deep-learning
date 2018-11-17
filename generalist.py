@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import numpy as np
 import datetime
 import constants as const
 
@@ -36,25 +35,26 @@ def output_to_piano_keys(
         return set_max_value_to_1(output).float().requires_grad_()
 
 
-def train_model(model: nn, dataset: Dataset, num_epochs: int = 10) -> nn:
+def train_model(model: nn, dataset: Dataset,
+                num_epochs: int = 10, specialize: bool = False) -> nn:
+
     loss_function = const.LOSS_FUNCTION
     optimizer = const.OPTIMIZER(model.parameters(), lr=const.LEARNING_RATE)
 
     for epoch in range(num_epochs):
         for i, song in enumerate(dataset):
-            input_tensors, tags, output_tensors = song
-            hidden = model.init_hidden()
+            input_tensors, tag, output_tensors = song
+            hidden = None if specialize else model.init_hidden()
 
             song_length = len(input_tensors)
             song_losses = []
             for t in range(1, song_length - 1, const.SEQ_LEN):
-                model.zero_grad()
-
                 roof = min(t + const.SEQ_LEN, song_length - 1)
                 x_seq = input_tensors[t:roof]
                 y_t = output_tensors[t:roof]
 
-                output, hidden = model(x_seq, hidden)
+                model.zero_grad()
+                output, hidden = model(x_seq, hidden, tag)
 
                 loss = loss_function(output, y_t.view(roof-t, -1))
                 song_losses.append(loss.item())
@@ -67,36 +67,19 @@ def train_model(model: nn, dataset: Dataset, num_epochs: int = 10) -> nn:
     return model
 
 
-def generate_from_song(
-        model: nn.Module,
-        song: torch.Tensor,
-        init_length: int = 100,
-        gen_length: int = 1000) -> np.array:
-
-    init = song[1:init_length]  # [1000, 1, 128] -> [100, 1, 128]
-    generated_song = init.squeeze().numpy()
-
-    with torch.no_grad():
-        model.reset_hidden()
-        output = model(init, None)
-        generated_song = np.concatenate((generated_song, output))
-
-        for t in range(gen_length):
-            output = model(output.view(-1, 1, const.INPUT_SIZE), None)
-            generated_song = np.concatenate((generated_song, output))
-
-    return np.round((generated_song/np.max(generated_song))).T
-
-
-def compose(model: nn.Module, dataset: Dataset) -> None:
+def compose(model: nn.Module, dataset: Dataset,
+            version: str, prefix: str, specialize: bool = False) -> None:
     for song_nr in range(len(dataset)):
         timestamp = datetime.datetime.utcnow()
-        filename = (f"zz_v5_c{song_nr}_l{const.NUM_HIDDEN_LAYERS}"
+        filename = (f"{version}_c{song_nr}_l{const.NUM_HIDDEN_LAYERS}"
                     f"_e{const.NUM_EPOCHS}"
                     f"_s{const.SEQ_LEN}_{timestamp}.mid")
-        filename = "compositions/" + filename
+        filename = prefix + filename
 
-        piano_roll = gen_music_pianoroll(model, init=dataset[song_nr][0][1:50])
+        composer = dataset[song_nr][1].item()
+        piano_roll = gen_music_pianoroll(model, init=dataset[song_nr][0][1:50],
+                                         composer=composer,
+                                         specialize=specialize)
         print(piano_roll)
         print(piano_roll.shape)
 
@@ -105,15 +88,17 @@ def compose(model: nn.Module, dataset: Dataset) -> None:
         print(f"Saved file to {full_path}")
 
 
-if __name__ == "__main__":
-    # dataset = DummyDataset()
+def main(model_type: object) -> nn.Module:
     dataset = get_training_data_loader()
     # Index first song tuple, then input, then the final input dim
     input_size = output_size = dataset[0][0][0][0].size(0)
-
-    # model = RNN(input_size, const.HIDDEN_SIZE, output_size)
-    model = LSTM(input_size, const.HIDDEN_SIZE,
-                 output_size, num_layers=const.NUM_HIDDEN_LAYERS)
+    model = model_type(input_size, const.HIDDEN_SIZE,
+                       output_size, num_layers=const.NUM_HIDDEN_LAYERS)
     model = train_model(model, dataset, num_epochs=const.NUM_EPOCHS)
 
-    compose(model, dataset)
+    return model, dataset
+
+
+if __name__ == "__main__":
+    model, dataset = main(LSTM)
+    compose(model, dataset, "v6", "compositions/")

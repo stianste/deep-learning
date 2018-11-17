@@ -147,17 +147,15 @@ def embed_play_v1(piano_roll_matrix,fs=5):
     return IPython.display.Audio(data=piano_roll_to_pretty_midi(piano_roll_matrix,fs).synthesize(),rate=44100)
 
 
-def generate_round(model,tag,n,k=1,init=None):
+def generate_round(model,tag,n,k=1,init=None,specialize=False):
     if(init is None):
         init = torch.zeros(size=(k, 1, model.input_size))
     else:
         k = init.shape[0]
     res = init.view(-1, const.INPUT_SIZE)
-    # Add all ones marker so we know when the model has taken over
-    hidden = model.init_hidden()
+    hidden = None if specialize else model.init_hidden()
     for i in range(n//k):
         init, hidden = model.forward(init.view(-1, 1, const.INPUT_SIZE), hidden)
-        # init = torch.round(torch.exp(init))
         init = torch.round(init/torch.max(init))
         res = torch.cat ( ( res, init ) )
     return res
@@ -192,7 +190,7 @@ def gen_music_initkeys(model,length=1000,initkeys=40,composer=0,fs=5):
     return embed_play_v1(res,fs)
     #return song
     
-def gen_music_pianoroll(model,length=100,init=None,composer=0,fs=5):
+def gen_music_pianoroll(model,length=100,init=None,composer=0,fs=5,specialize=False):
     if(init is None):
         song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1),length,1)
     else:

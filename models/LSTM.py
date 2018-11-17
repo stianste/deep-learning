@@ -30,13 +30,16 @@ class LSTM(nn.Module):
 class LSTMSpecialist(LSTM):
     def __init__(self, input_size, hidden_size,
                  output_size, num_layers=1, num_composers=4):
-        super(LSTMSpecialist, self).__init__()
-        self.num_composers = num_composers
-        self.composer_embeddings = nn.Embedding(num_composers, hidden_size)
-        self.notes_encoder = nn.Linear(in_features=input_size,
-                                       out_features=hidden_size)
+        super(LSTMSpecialist, self).__init__(
+              input_size, hidden_size, output_size, num_layers=1
+              )
+        self.h_embed = nn.Embedding(num_composers, hidden_size)
+        self.c_embed = nn.Embedding(num_composers, hidden_size)
 
-    def forward(self, inp, tag, hidden=None):
-        if not hidden:
-            self.hidden = self.composer_embeddings()
-        super.forward(inp, tag)
+    def forward(self, inp, hidden, tag=0):
+        if hidden is None:
+            h_t = self.h_embed(tag).view(self.num_layers, 1, self.input_size)
+            c_t = self.c_embed(tag).view(self.num_layers, 1, self.input_size)
+            hidden = (h_t, c_t)
+
+        return super(LSTMSpecialist, self).forward(inp, hidden, tag)
