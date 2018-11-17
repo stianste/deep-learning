@@ -91,7 +91,8 @@ def generate_from_song(
 def compose(model: nn.Module, dataset: Dataset) -> None:
     for song_nr in range(len(dataset)):
         timestamp = datetime.datetime.utcnow()
-        filename = (f"v5_c{song_nr}_fs{const.FS}_e{const.NUM_EPOCHS}"
+        filename = (f"v5_c{song_nr}_l{const.NUM_HIDDEN_LAYERS}"
+                    f"_e{const.NUM_EPOCHS}"
                     f"_s{const.SEQ_LEN}_{timestamp}.mid")
         filename = "compositions/" + filename
 
@@ -99,7 +100,8 @@ def compose(model: nn.Module, dataset: Dataset) -> None:
         print(piano_roll)
         print(piano_roll.shape)
 
-        full_path = piano_roll_to_mid_file(piano_roll * 100, filename, fs=const.FS)
+        full_path = piano_roll_to_mid_file(piano_roll * 100,
+                                           filename, fs=const.FS)
         print(f"Saved file to {full_path}")
 
 
@@ -110,7 +112,8 @@ if __name__ == "__main__":
     input_size = output_size = dataset[0][0][0][0].size(0)
 
     # model = RNN(input_size, const.HIDDEN_SIZE, output_size)
-    model = LSTM(input_size, const.HIDDEN_SIZE, output_size)
+    model = LSTM(input_size, const.HIDDEN_SIZE,
+                 output_size, num_layers=const.NUM_HIDDEN_LAYERS)
     model = train_model(model, dataset, num_epochs=const.NUM_EPOCHS)
 
     compose(model, dataset)

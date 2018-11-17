@@ -3,21 +3,22 @@ import torch.nn as nn
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
+    def __init__(self, input_size, hidden_size, output_size, num_layers=1):
         super(LSTM, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
+        self.num_layers = num_layers
 
-        self.lstm = nn.LSTM(input_size, hidden_size)
+        self.lstm = nn.LSTM(input_size, hidden_size,
+                            num_layers=self.num_layers)
 
-        # The linear layer that maps from hidden state space to tag space
         self.hidden2out = nn.Linear(hidden_size, output_size)
         self.hidden = self.init_hidden()
 
     def init_hidden(self):
         # The axes semantics are (num_layers, minibatch_size, hidden_dim)
-        return (torch.zeros(1, 1, self.hidden_size),
-                torch.zeros(1, 1, self.hidden_size))
+        return (torch.zeros(self.num_layers, 1, self.hidden_size),
+                torch.zeros(self.num_layers, 1, self.hidden_size))
 
     def forward(self, inp, tags):
         lstm_out, self.hidden = self.lstm(inp, self.hidden)
