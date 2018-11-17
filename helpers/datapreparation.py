@@ -9,6 +9,7 @@ import sys
 import IPython
 import fluidsynth
 import torch
+import constants as const
 # import matplotlib.pyplot as plt
 
 
@@ -134,17 +135,6 @@ def get_numkeys(dataset):
     """
     return np.unique([x.shape[0] for x in dataset])
 
-# def visualize_piano_roll(pianoroll_matrix,fs=5):
-#     """ input: piano roll matrix with shape (number of notes, time steps)
-#         effect: generates a nice graph with the piano roll visualization
-#     """
-#     if(pianoroll_matrix.shape[0]==128):
-#         pianoroll_matrix=pianoroll_matrix.T.astype(float)
-#     track = pproll.Track(pianoroll=pianoroll_matrix, program=0, is_drum=False, name='piano roll')   
-#     # Plot the piano-roll
-#     fig, ax = track.plot(beat_resolution=fs)
-#     plt.show()
-
 def test_piano_roll(pianoroll_matrix,n_seconds,fs=5):
     """ input: piano roll matrix with shape (number of notes, time steps)
         effect: output a initial testing snippet with n_seconds
@@ -159,16 +149,17 @@ def embed_play_v1(piano_roll_matrix,fs=5):
 
 def generate_round(model,tag,n,k=1,init=None):
     if(init is None):
-        init = torch.zeros(size=(k,1,model.input_size))
+        init = torch.zeros(size=(k, 1, model.input_size))
     else:
         k = init.shape[0]
-    res = init
+    res = init.view(-1, const.INPUT_SIZE)
+    # Add all ones marker so we know when the model has taken over
     model.reset_hidden()
     for i in range(n//k):
-        init = model.forward(init.view(1, 1, 128), tag)
-        #init = torch.round(torch.exp(init))
+        init = model.forward(init.view(-1, 1, const.INPUT_SIZE), tag)
+        # init = torch.round(torch.exp(init))
         init = torch.round(init/torch.max(init))
-        res = torch.cat ( ( res, init.view(1, 1, -1) ) )
+        res = torch.cat ( ( res, init ) )
     return res
 
 def generate_smooth(model,tag,n,init):
@@ -211,13 +202,12 @@ def gen_music_pianoroll(model,length=1000,init=None,composer=0,fs=5):
 
 def gen_music_seconds(model,init,composer=0,fs=5,gen_seconds=10,init_seconds=5):
     if(init is None):
-        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1).cuda(),gen_seconds*fs,1)
+        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1),gen_seconds*fs,1)
     else:
         init_index = int(init_seconds*fs) 
-        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1).cuda(),(gen_seconds-init_seconds+1)*fs,1,init[1:(init_index+1)])
+        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1),(gen_seconds-init_seconds+1)*fs,1,init[1:(init_index+1)])
     res = ( song.squeeze(1).detach().cpu().numpy()).astype(float).T
-    visualize_piano_roll(res,fs)
-    return embed_play_v1(res,fs)
+    return res
 
 def gen_music_seconds_smooth(model,init,composer=0,fs=5,gen_seconds=10,init_seconds=5):
     init_index = int(init_seconds*fs) 
