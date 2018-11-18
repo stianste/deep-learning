@@ -14,5 +14,5 @@ if __name__ == "__main__":
     model, dataset = main(LSTMSpecialist)
     print("Now specializing")
     model = specialize_model(model, dataset,
-                             num_epochs=1)
-    compose(model, dataset, "v1", "specialized_compositions/", specialize=True)
+                             num_epochs=const.NUM_EPOCHS // 4)
+    compose(model, dataset, "comp", "specialized_compositions/", specialize=True)

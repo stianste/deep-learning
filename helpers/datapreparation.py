@@ -190,7 +190,7 @@ def gen_music_initkeys(model,length=1000,initkeys=40,composer=0,fs=5):
     return embed_play_v1(res,fs)
     #return song
     
-def gen_music_pianoroll(model,length=100,init=None,composer=0,fs=5,specialize=False):
+def gen_music_pianoroll(model,length=500,init=None,composer=0,fs=5,specialize=False):
     if(init is None):
         song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1),length,1)
     else:
