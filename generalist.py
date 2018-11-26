@@ -16,25 +16,6 @@ def get_training_data_loader(directory: str = csv_dir):
     return pianoroll_dataset_batch(directory)
 
 
-def set_max_value_to_1(tensor: torch.Tensor) -> torch.Tensor:
-    max_index = torch.argmax(tensor, 2).item()
-    # TODO: This is very ad-hoc. Do properly later
-    tensor = torch.zeros(1, 1, 128)
-    tensor[0][0][max_index] = 1
-    return tensor
-
-
-def output_to_piano_keys(
-        output: torch.Tensor,
-        threshold: float = 0.6) -> torch.Tensor:
-
-    above_threshold = output > threshold
-    if above_threshold.sum() > 1:
-        return above_threshold.float().requires_grad_()
-    else:
-        return set_max_value_to_1(output).float().requires_grad_()
-
-
 def train_model(model: nn, dataset: Dataset,
                 num_epochs: int = 10, specialize: bool = False) -> nn:
 
@@ -67,13 +48,20 @@ def train_model(model: nn, dataset: Dataset,
     return model
 
 
+def _get_filename(version: str, song_nr: int, extension: str = ".mid") -> str:
+    timestamp = datetime.datetime.utcnow()
+    filename = (f"{timestamp}_{version}_c{song_nr}_"
+                f"l{const.NUM_HIDDEN_LAYERS}"
+                f"_e{const.NUM_EPOCHS}"
+                f"_s{const.SEQ_LEN}.{extension}")
+
+    return filename
+
+
 def compose(model: nn.Module, dataset: Dataset,
             version: str, prefix: str, specialize: bool = False) -> None:
     for song_nr in range(len(dataset)):
-        timestamp = datetime.datetime.utcnow()
-        filename = (f"{version}_c{song_nr}_l{const.NUM_HIDDEN_LAYERS}"
-                    f"_e{const.NUM_EPOCHS}"
-                    f"_s{const.SEQ_LEN}_{timestamp}.mid")
+        filename = _get_filename("v8", song_nr)
         filename = prefix + filename
 
         composer = dataset[song_nr][1].item()
@@ -86,6 +74,20 @@ def compose(model: nn.Module, dataset: Dataset,
         full_path = piano_roll_to_mid_file(piano_roll * 100,
                                            filename, fs=const.FS)
         print(f"Saved file to {full_path}")
+
+
+def save_model(model: nn.Module, filename: str = None, specialized: bool = False) -> None:
+    if not filename:
+        if specialized:
+            filename = _get_filename("specialized_", "", ".pth")
+        else:
+            filename = _get_filename("", "", ".pth")
+
+    torch.save(model, f'{const.PRETRAINED_MODELS_PATH}{filename}')
+
+
+def load_model(model_name: str) -> nn.Module:
+    return torch.load(f'{const.PRETRAINED_MODELS_PATH}{model_name}')
 
 
 def main(model_type: object) -> nn.Module:

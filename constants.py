@@ -4,7 +4,7 @@ import torch.nn as nn
 """General"""
 # Currently only works with batchsize 1, since the songs are of unequal length
 BATCH_SIZE = 1
-NUM_EPOCHS = 50
+NUM_EPOCHS = 0
 FS = 5
 
 INPUT_SIZE = 128
@@ -16,3 +16,5 @@ LOSS_FUNCTION = nn.MSELoss()
 OPTIMIZER = torch.optim.Adam
 
 SEQ_LEN = 200
+
+PRETRAINED_MODELS_PATH = "./models/pretrained_models/"
