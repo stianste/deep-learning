@@ -8,8 +8,6 @@ from helpers.dataset import pianoroll_dataset_batch
 from helpers.datapreparation import (
     piano_roll_to_mid_file,
     gen_music_pianoroll,
-    visualize_piano_roll,
-    midfile_to_piano_roll
 )
 from models.LSTM import LSTM
 
@@ -21,7 +19,7 @@ def get_training_data_loader(directory: str = csv_dir):
     return pianoroll_dataset_batch(directory)
 
 
-def _get_filename(version: str, song_nr: int, extension: str = ".mid") -> str:
+def _get_filename(version: str, song_nr: int, extension: str = "mid") -> str:
     timestamp = datetime.datetime.utcnow()
     filename = (f"{timestamp}_{version}_c{song_nr}_"
                 f"l{const.NUM_HIDDEN_LAYERS}"
@@ -63,30 +61,47 @@ def train_model(model: nn, dataset: Dataset,
     return model
 
 
+def single_composition(model: nn.Module, 
+                       dataset: Dataset,
+                       version: str,
+                       prefix: str,
+                       song_nr: int = 0,
+                       specialize: bool = False,
+                       composer: int = -1) -> None:
+
+    filename = _get_filename(version, song_nr)
+    filename = prefix + filename
+
+    if composer == -1:
+        composer = dataset[song_nr][1]
+
+    init = dataset[song_nr][0][1:50]
+
+    piano_roll = gen_music_pianoroll(model,
+                                     init=init,
+                                     composer=composer,
+                                     specialize=specialize)
+
+    full_path = piano_roll_to_mid_file(piano_roll * 100,
+                                       filename, fs=const.FS)
+    print(f"Saved file to {full_path}")
+
+
 def compose(model: nn.Module, dataset: Dataset,
-            version: str, prefix: str, specialize: bool = False) -> None:
+            version: str, prefix: str,
+            specialize: bool = False) -> None:
+
     for song_nr in range(len(dataset)):
-        filename = _get_filename("v8", song_nr)
-        filename = prefix + filename
-
-        composer = dataset[song_nr][1].item()
-        piano_roll = gen_music_pianoroll(model, init=dataset[song_nr][0][1:50],
-                                         composer=composer,
-                                         specialize=specialize)
-        print(piano_roll)
-        print(piano_roll.shape)
-
-        full_path = piano_roll_to_mid_file(piano_roll * 100,
-                                           filename, fs=const.FS)
-        print(f"Saved file to {full_path}")
+        single_composition(model, dataset, version,
+                           prefix, song_nr, specialize)
 
 
 def save_model(model: nn.Module, filename: str = None, specialized: bool = False) -> None:
     if not filename:
         if specialized:
-            filename = _get_filename("specialized_", "", ".pth")
+            filename = _get_filename("specialized", "", "pth")
         else:
-            filename = _get_filename("", "", ".pth")
+            filename = _get_filename("", "", "pth")
 
     torch.save(model, f'{const.PRETRAINED_MODELS_PATH}{filename}')
 
@@ -104,4 +119,4 @@ def main(model_type: object) -> nn.Module:
 
 if __name__ == "__main__":
     model, dataset = main(LSTM)
-    compose(model, dataset, "v6", "compositions/generalist/")
+    compose(model, dataset, "v7", "compositions/generalist/")

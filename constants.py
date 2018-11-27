@@ -3,7 +3,7 @@ import torch.nn as nn
 
 """General"""
 BATCH_SIZE = 1
-NUM_EPOCHS = 100
+NUM_EPOCHS = 0
 FS = 5
 
 INPUT_SIZE = 128

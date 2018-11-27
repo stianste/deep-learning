@@ -15,7 +15,7 @@ if __name__ == "__main__":
     compose(
         model,
         dataset,
-        "test_v7_2layers",
+        "v7",
         "compositions/generalist/",
         specialize=False
     )
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     compose(
         model,
         dataset,
-        "test__v2",
+        "v2",
         "compositions/specialized/",
         specialize=True
     )

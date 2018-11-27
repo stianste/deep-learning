@@ -164,7 +164,7 @@ def generate_round(model,tag,n,k=1,init=None,specialize=False):
     res = init.view(-1, const.INPUT_SIZE)
     hidden = None if specialize else model.init_hidden()
     for i in range(n//k):
-        init, hidden = model.forward(init.view(-1, 1, const.INPUT_SIZE), hidden)
+        init, hidden = model.forward(init.view(-1, 1, const.INPUT_SIZE), hidden, tag)
         init = torch.round(init/torch.max(init))
         res = torch.cat ( ( res, init ) )
     return res
@@ -201,9 +201,9 @@ def gen_music_initkeys(model,length=1000,initkeys=40,composer=0,fs=5):
     
 def gen_music_pianoroll(model,length=500,init=None,composer=0,fs=5,specialize=False):
     if(init is None):
-        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1),length,1)
+        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1),length,1,specialize=specialize)
     else:
-        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1),length,1,init)
+        song=generate_round(model, torch.LongTensor([composer]).unsqueeze(1),length,1,init,specialize=specialize)
     res = ( song.squeeze(1).detach().cpu().numpy()).astype(int).T
     return res
 

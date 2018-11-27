@@ -36,7 +36,7 @@ class LSTMSpecialist(LSTM):
         self.h_embed = nn.Embedding(num_composers, hidden_size)
         self.c_embed = nn.Embedding(num_composers, hidden_size)
 
-    def forward(self, inp, hidden, tag=0):
+    def forward(self, inp, hidden, tag):
         if hidden is None:
             h_t = self.h_embed(tag).view(self.num_layers, 1, self.input_size)
             c_t = self.c_embed(tag).view(self.num_layers, 1, self.input_size)

@@ -7,6 +7,7 @@ from helpers.datapreparation import (
     visualize_piano_roll,
     midfile_to_piano_roll
 )
+from generalist import single_composition, get_training_data_loader
 
 
 def load_model(model_name: str) -> nn.Module:
@@ -22,4 +23,8 @@ def visualize_song(song_filepath: str):
 if __name__ == "__main__":
     # visualize_song("./compositions/demos/[short]v6_c12_l1_e50_s200.mid")
     visualize_song("./compositions/demos/v8_c12_l2_e100_s200.mid")
-
+    model = load_model("2018-11-26 23:30:42.765568_specialized__c_l2_e100_s200.pth")
+    dataset = get_training_data_loader()
+    folder_prefix = "compositions/live_demos/"
+    for i in range(4):
+        single_composition(model, dataset, "", folder_prefix, 12, True, i)
