@@ -2,7 +2,7 @@ import datapreparation as dp
 from dataset import pianoroll_dataset_batch
 
 # Filpath relative to root folder
-fs1_rolls = 'datasets/training/piano_roll_fs1/'
+fs1_rolls = 'datasets/training/piano_roll_fs5/'
 
 # First just try and read all the csvs
 all_data = dp.load_all_dataset(fs1_rolls)

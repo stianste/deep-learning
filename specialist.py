@@ -1,7 +1,7 @@
 import torch.nn as nn
 import constants as const
 from torch.utils.data import Dataset
-from generalist import main, train_model, compose, save_model, load_model
+from generalist import main, train_model, compose, save_model
 from models.LSTM import LSTMSpecialist
 
 
@@ -16,7 +16,7 @@ if __name__ == "__main__":
         model,
         dataset,
         "test_v7_2layers",
-        "compositions/",
+        "compositions/generalist/",
         specialize=False
     )
     save_model(model)
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         model,
         dataset,
         "test__v2",
-        "specialized_compositions/",
+        "compositions/specialized/",
         specialize=True
     )
     save_model(model, filename=None, specialized=True)

@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers=2):
+    def __init__(self, input_size, hidden_size, output_size, num_layers=1):
         super(LSTM, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
@@ -29,7 +29,7 @@ class LSTM(nn.Module):
 
 class LSTMSpecialist(LSTM):
     def __init__(self, input_size, hidden_size,
-                 output_size, num_layers=2, num_composers=4):
+                 output_size, num_layers=1, num_composers=4):
         super(LSTMSpecialist, self).__init__(
               input_size, hidden_size, output_size, num_layers=1
               )

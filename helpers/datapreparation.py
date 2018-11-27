@@ -10,7 +10,7 @@ import IPython
 import fluidsynth
 import torch
 import constants as const
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
 def piano_roll_to_pretty_midi(piano_roll, fs=100, program=2):
@@ -67,7 +67,16 @@ def piano_roll_to_pretty_midi(piano_roll, fs=100, program=2):
     pm.instruments.append(instrument)
     return pm
 
-
+def visualize_piano_roll(pianoroll_matrix,fs=5):
+    """ input: piano roll matrix with shape (number of notes, time steps)
+        effect: generates a nice graph with the piano roll visualization
+    """
+    if(pianoroll_matrix.shape[0]==128):
+        pianoroll_matrix=pianoroll_matrix.T.astype(float)
+    track = pproll.Track(pianoroll=pianoroll_matrix, program=0, is_drum=False, name='piano roll')   
+    # Plot the piano-roll
+    fig, ax = track.plot(beat_resolution=fs)
+    plt.show()
 
 def midfile_to_piano_roll(filepath,fs=5):
     """ convert a mid file to a piano roll matrix and saves it in a csv file
@@ -75,7 +84,7 @@ def midfile_to_piano_roll(filepath,fs=5):
         output: path to piano_roll csv file
     """
     pm = pretty_midi.PrettyMIDI(filepath)
-    pr=pm.get_piano_roll(fs)
+    pr = pm.get_piano_roll(fs)
     df = pd.DataFrame(pr)
     df.to_csv(filepath[:-3]+"csv")
     return filepath[:-3]+"csv"

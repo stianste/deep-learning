@@ -5,7 +5,12 @@ import constants as const
 
 from torch.utils.data import Dataset
 from helpers.dataset import pianoroll_dataset_batch
-from helpers.datapreparation import piano_roll_to_mid_file, gen_music_pianoroll
+from helpers.datapreparation import (
+    piano_roll_to_mid_file,
+    gen_music_pianoroll,
+    visualize_piano_roll,
+    midfile_to_piano_roll
+)
 from models.LSTM import LSTM
 
 fs_rolls = f'datasets/training/piano_roll_fs{const.FS}/'
@@ -14,6 +19,16 @@ csv_dir = fs_rolls
 
 def get_training_data_loader(directory: str = csv_dir):
     return pianoroll_dataset_batch(directory)
+
+
+def _get_filename(version: str, song_nr: int, extension: str = ".mid") -> str:
+    timestamp = datetime.datetime.utcnow()
+    filename = (f"{timestamp}_{version}_c{song_nr}_"
+                f"l{const.NUM_HIDDEN_LAYERS}"
+                f"_e{const.NUM_EPOCHS}"
+                f"_s{const.SEQ_LEN}.{extension}")
+
+    return filename
 
 
 def train_model(model: nn, dataset: Dataset,
@@ -48,16 +63,6 @@ def train_model(model: nn, dataset: Dataset,
     return model
 
 
-def _get_filename(version: str, song_nr: int, extension: str = ".mid") -> str:
-    timestamp = datetime.datetime.utcnow()
-    filename = (f"{timestamp}_{version}_c{song_nr}_"
-                f"l{const.NUM_HIDDEN_LAYERS}"
-                f"_e{const.NUM_EPOCHS}"
-                f"_s{const.SEQ_LEN}.{extension}")
-
-    return filename
-
-
 def compose(model: nn.Module, dataset: Dataset,
             version: str, prefix: str, specialize: bool = False) -> None:
     for song_nr in range(len(dataset)):
@@ -86,10 +91,6 @@ def save_model(model: nn.Module, filename: str = None, specialized: bool = False
     torch.save(model, f'{const.PRETRAINED_MODELS_PATH}{filename}')
 
 
-def load_model(model_name: str) -> nn.Module:
-    return torch.load(f'{const.PRETRAINED_MODELS_PATH}{model_name}')
-
-
 def main(model_type: object) -> nn.Module:
     dataset = get_training_data_loader()
     # Index first song tuple, then input, then the final input dim
@@ -103,4 +104,4 @@ def main(model_type: object) -> nn.Module:
 
 if __name__ == "__main__":
     model, dataset = main(LSTM)
-    compose(model, dataset, "v6", "compositions/")
+    compose(model, dataset, "v6", "compositions/generalist/")
