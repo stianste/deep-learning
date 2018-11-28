@@ -111,7 +111,8 @@ def main(model_type: object) -> nn.Module:
     # Index first song tuple, then input, then the final input dim
     input_size = output_size = dataset[0][0][0][0].size(0)
     model = model_type(input_size, const.HIDDEN_SIZE,
-                       output_size, num_layers=const.NUM_HIDDEN_LAYERS)
+                       output_size, num_layers=const.NUM_HIDDEN_LAYERS,
+                       dropout=const.DROPOUT)
     model = train_model(model, dataset, num_epochs=const.NUM_EPOCHS)
 
     return model, dataset

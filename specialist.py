@@ -16,7 +16,7 @@ if __name__ == "__main__":
         model,
         dataset,
         "v7",
-        "compositions/generalist/",
+        "compositions/generalist/__temp",
         specialize=False
     )
     save_model(model)
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         model,
         dataset,
         "v2",
-        "compositions/specialized/",
+        "compositions/specialized/__temp",
         specialize=True
     )
     save_model(model, filename=None, specialized=True)

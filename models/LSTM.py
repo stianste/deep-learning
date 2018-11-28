@@ -3,14 +3,14 @@ import torch.nn as nn
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size, num_layers=1):
+    def __init__(self, input_size, hidden_size, output_size, num_layers=1, dropout=0):
         super(LSTM, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.num_layers = num_layers
 
         self.lstm = nn.LSTM(input_size, hidden_size,
-                            num_layers=self.num_layers)
+                            num_layers=self.num_layers, dropout=dropout)
 
         self.hidden2out = nn.Linear(hidden_size, output_size)
         self.hidden = self.init_hidden()
@@ -29,12 +29,16 @@ class LSTM(nn.Module):
 
 class LSTMSpecialist(LSTM):
     def __init__(self, input_size, hidden_size,
-                 output_size, num_layers=1, num_composers=4):
+                 output_size, num_layers=1, dropout=0, num_composers=4):
         super(LSTMSpecialist, self).__init__(
-              input_size, hidden_size, output_size, num_layers=1
+              input_size, hidden_size,
+              output_size, num_layers=num_layers,
+              dropout=dropout
               )
-        self.h_embed = nn.Embedding(num_composers, hidden_size)
-        self.c_embed = nn.Embedding(num_composers, hidden_size)
+        self.h_embed = nn.Embedding(num_composers,
+                                    self.num_layers * hidden_size)
+        self.c_embed = nn.Embedding(num_composers,
+                                    self.num_layers * hidden_size)
 
     def forward(self, inp, hidden, tag):
         if hidden is None:
